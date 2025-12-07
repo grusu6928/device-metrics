@@ -1,0 +1,63 @@
+name: Lint Commits
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install pre-commit
+        run: |
+          pip install --upgrade pip
+          pip install pre-commit
+
+      - name: Validate commit messages (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Validate each commit in the PR
+          base=${{ github.event.pull_request.base.sha }}
+          head=${{ github.event.pull_request.head.sha }}
+          for commit in $(git rev-list ${base}..${head}); do
+            commit_msg=$(git log -1 --format=%B ${commit})
+            echo "Validating commit: ${commit:0:7}"
+            echo "${commit_msg}" | pre-commit run --hook-stage commit-msg --commit-msg-filename /dev/stdin || {
+              echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
+              echo "Message: ${commit_msg}"
+              exit 1
+            }
+          done
+          echo "✅ All commits follow conventional commit format"
+
+      - name: Validate commit messages (Push)
+        if: github.event_name == 'push'
+        run: |
+          # Validate each commit in the push
+          before=${{ github.event.before }}
+          after=${{ github.sha }}
+          if [ "$before" != "0000000000000000000000000000000000000000" ]; then
+            for commit in $(git rev-list ${before}..${after}); do
+              commit_msg=$(git log -1 --format=%B ${commit})
+              echo "Validating commit: ${commit:0:7}"
+              echo "${commit_msg}" | pre-commit run --hook-stage commit-msg --commit-msg-filename /dev/stdin || {
+                echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
+                echo "Message: ${commit_msg}"
+                exit 1
+              }
+            done
+            echo "✅ All commits follow conventional commit format"
+          fi
+
