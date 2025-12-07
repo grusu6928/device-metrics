@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "device-metrics.fullname" . }}-config
+  namespace: {{ include "device-metrics.namespace" . }}
+  labels:
+    {{- include "device-metrics.labels" . | nindent 4 }}
+data:
+  KAFKA_BOOTSTRAP_SERVERS: {{ .Values.config.env.KAFKA_BOOTSTRAP_SERVERS | quote }}
+  QDRANT_HOST: {{ .Values.config.env.QDRANT_HOST | quote }}
+  QDRANT_PORT: {{ .Values.config.env.QDRANT_PORT | quote }}
+  API_V1_PREFIX: {{ .Values.config.env.API_V1_PREFIX | default "/api/v1" | quote }}
+  PROJECT_NAME: {{ .Values.config.env.PROJECT_NAME | default .Values.image.repository | quote }}
+

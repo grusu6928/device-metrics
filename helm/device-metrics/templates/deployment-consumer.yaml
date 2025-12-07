@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "device-metrics.fullname" . }}-consumer
+  namespace: {{ include "device-metrics.namespace" . }}
+  labels:
+    {{- include "device-metrics.labels" . | nindent 4 }}
+    component: consumer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      {{- include "device-metrics.selectorLabels" . | nindent 6 }}
+      component: consumer
+  template:
+    metadata:
+      labels:
+        {{- include "device-metrics.selectorLabels" . | nindent 8 }}
+        component: consumer
+    spec:
+      containers:
+      - name: consumer
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["python", "-m", "src.consumer.main"]
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep 'app.consumer.main' | grep -v grep || exit 1"
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "ps aux | grep 'app.consumer.main' | grep -v grep || exit 1"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.resources.consumer | nindent 12 }}
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.config.secretName }}
+              key: DATABASE_URL
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: {{ .Values.config.env.KAFKA_BOOTSTRAP_SERVERS | quote }}
+        - name: QDRANT_HOST
+          value: {{ .Values.config.env.QDRANT_HOST | quote }}
+        - name: QDRANT_PORT
+          value: {{ .Values.config.env.QDRANT_PORT | quote }}
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.config.secretName }}
+              key: OPENAI_API_KEY
+              optional: true
+
+

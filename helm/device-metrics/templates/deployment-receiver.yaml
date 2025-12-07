@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "device-metrics.fullname" . }}-receiver
+  namespace: {{ include "device-metrics.namespace" . }}
+  labels:
+    {{- include "device-metrics.labels" . | nindent 4 }}
+    component: receiver
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "device-metrics.selectorLabels" . | nindent 6 }}
+      component: receiver
+  template:
+    metadata:
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "device-metrics.selectorLabels" . | nindent 8 }}
+        component: receiver
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "device-metrics.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: receiver
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 10 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 10 }}
+        resources:
+          {{- toYaml .Values.resources.receiver | nindent 12 }}
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.config.secretName }}
+              key: DATABASE_URL
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: {{ .Values.config.env.KAFKA_BOOTSTRAP_SERVERS | quote }}
+        - name: QDRANT_HOST
+          value: {{ .Values.config.env.QDRANT_HOST | quote }}
+        - name: QDRANT_PORT
+          value: {{ .Values.config.env.QDRANT_PORT | quote }}
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.config.secretName }}
+              key: SECRET_KEY
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.config.secretName }}
+              key: OPENAI_API_KEY
+              optional: true
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+
