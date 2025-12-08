@@ -2,21 +2,22 @@
 
 help:
 	@echo "Device Metrics Microservice - Available commands:"
-	@echo "  make setup          - Set up development environment"
-	@echo "  make install-hooks - Install pre-commit hooks"
-	@echo "  make test           - Run tests"
-	@echo "  make lint           - Run linters"
-	@echo "  make format         - Auto-format code"
-	@echo "  make ci             - Run all CI checks (lint, test, security)"
-	@echo "  make check          - Run all checks before commit (lint + test)"
-	@echo "  make commitlint     - Validate commit messages"
-	@echo "  make security-scan  - Run security scans (Trivy, Bandit)"
-	@echo "  make run-receiver   - Start FastAPI receiver"
-	@echo "  make run-consumer   - Start Kafka consumer"
-	@echo "  make docker-up      - Start infrastructure services"
-	@echo "  make docker-down    - Stop infrastructure services"
-	@echo "  make migrate        - Run database migrations"
-	@echo "  make docker-build   - Build Docker image"
+	@echo "  make setup            - Set up development environment"
+	@echo "  make install-hooks    - Install pre-commit hooks"
+	@echo "  make test             - Run tests"
+	@echo "  make test-before-push - Run tests matching CI (USE BEFORE PUSHING!)"
+	@echo "  make lint             - Run linters"
+	@echo "  make format           - Auto-format code"
+	@echo "  make ci               - Run all CI checks (lint, test, security)"
+	@echo "  make check            - Run all checks before commit (lint + test)"
+	@echo "  make commitlint       - Validate commit messages"
+	@echo "  make security-scan    - Run security scans (Trivy, Bandit)"
+	@echo "  make run-receiver     - Start FastAPI receiver"
+	@echo "  make run-consumer     - Start Kafka consumer"
+	@echo "  make docker-up        - Start infrastructure services"
+	@echo "  make docker-down      - Stop infrastructure services"
+	@echo "  make migrate          - Run database migrations"
+	@echo "  make docker-build     - Build Docker image"
 
 setup:
 	bash scripts/setup.sh
@@ -124,5 +125,26 @@ lint-ci:
 # Test with coverage (matches CI exactly)
 test-ci:
 	@echo "Running tests with coverage (CI mode)..."
-	@export DATABASE_URL="$${DATABASE_URL:-sqlite:///./test.db}" && pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html
+	@export DATABASE_URL="$${DATABASE_URL:-sqlite:///./test.db}" && pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html --tb=short
 	@echo "✅ Tests complete! Coverage report in htmlcov/index.html"
+
+# Test locally BEFORE pushing (matches CI exactly)
+test-before-push:
+	@echo "🧪 Running tests locally (matching CI)..."
+	@echo "⚠️  IMPORTANT: Run this before pushing to catch CI failures early!"
+	@echo ""
+	@PYTHON_VER=$$(python3 --version 2>&1 | awk '{print $$2}' | cut -d. -f1,2); \
+	if [ "$$PYTHON_VER" != "3.11" ]; then \
+		echo "⚠️  WARNING: CI uses Python 3.11, you're using Python $$PYTHON_VER"; \
+		echo "   Some issues may only appear in CI"; \
+		echo "   Install Python 3.11: brew install python@3.11"; \
+		echo ""; \
+	fi
+	@echo "📦 Installing dependencies..."
+	@pip install -q -r requirements.txt || (echo "❌ Failed to install dependencies"; exit 1)
+	@echo "🔍 Running pytest (exact CI command)..."
+	@export DATABASE_URL="sqlite:///./test.db" && \
+		pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --tb=short || \
+		(echo ""; echo "❌ TESTS FAILED - DO NOT PUSH!"; echo "   Fix errors above before committing/pushing"; exit 1)
+	@echo ""
+	@echo "✅ All tests passed! Safe to push."
