@@ -24,6 +24,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pre-commit
+          pip install conventional-pre-commit
 
       - name: Install pre-commit hooks
         run: pre-commit install-hooks
@@ -35,13 +36,18 @@ jobs:
           base=${{ github.event.pull_request.base.sha }}
           head=${{ github.event.pull_request.head.sha }}
           for commit in $(git rev-list ${base}..${head}); do
-            commit_msg=$(git log -1 --format=%B ${commit})
+            commit_subject=$(git log -1 --format=%s ${commit})
             echo "Validating commit: ${commit:0:7}"
-            echo "${commit_msg}" | pre-commit run --hook-stage commit-msg --commit-msg-filename /dev/stdin || {
+            # Use conventional-pre-commit hook from pre-commit
+            tmp_file=$(mktemp)
+            echo "${commit_subject}" > "${tmp_file}"
+            pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" --hook conventional-pre-commit || {
               echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
-              echo "Message: ${commit_msg}"
+              echo "Message: ${commit_subject}"
+              rm -f "${tmp_file}"
               exit 1
             }
+            rm -f "${tmp_file}"
           done
           echo "✅ All commits follow conventional commit format"
 
@@ -53,13 +59,18 @@ jobs:
           after=${{ github.sha }}
           if [ "$before" != "0000000000000000000000000000000000000000" ]; then
             for commit in $(git rev-list ${before}..${after}); do
-              commit_msg=$(git log -1 --format=%B ${commit})
+              commit_subject=$(git log -1 --format=%s ${commit})
               echo "Validating commit: ${commit:0:7}"
-              echo "${commit_msg}" | pre-commit run --hook-stage commit-msg --commit-msg-filename /dev/stdin || {
+              # Use conventional-pre-commit hook from pre-commit
+              tmp_file=$(mktemp)
+              echo "${commit_subject}" > "${tmp_file}"
+              pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" --hook conventional-pre-commit || {
                 echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
-                echo "Message: ${commit_msg}"
+                echo "Message: ${commit_subject}"
+                rm -f "${tmp_file}"
                 exit 1
               }
+              rm -f "${tmp_file}"
             done
             echo "✅ All commits follow conventional commit format"
           fi
