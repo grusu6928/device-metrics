@@ -1,23 +1,20 @@
 """FastAPI application entry point"""
-from fastapi import FastAPI
+
 import logging
 
+from fastapi import FastAPI
+
 from src.api.config import settings
+from src.api.dependencies import create_test_user
+from src.api.middleware import setup_cors
+from src.api.routes import auth, metrics, monitoring, network
 from src.common.database import get_db
 from src.common.kafka.producer import KafkaProducer
-from src.api.dependencies import create_test_user
-from src.api.routes import auth, metrics, network, monitoring
-from src.api.middleware import setup_cors
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(
-    title=settings.PROJECT_NAME,
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
+app = FastAPI(title=settings.PROJECT_NAME, version="0.1.0", docs_url="/docs", redoc_url="/redoc")
 
 # Setup CORS middleware
 setup_cors(app)
@@ -31,7 +28,7 @@ async def startup_event():
     """Initialize services on startup"""
     logger.info("Starting Device Metrics Receiver")
     await kafka_producer.connect()
-    
+
     # Create test user for development
     db = next(get_db())
     create_test_user(db)
@@ -60,5 +57,5 @@ app.include_router(monitoring.router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
 
+    uvicorn.run(app, host="0.0.0.0", port=8000)

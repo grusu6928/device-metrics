@@ -18,36 +18,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black isort mypy
         pip install -r requirements.txt
-    
+
     - name: Lint with flake8
       run: |
         flake8 src tests --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 src tests --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
-    
+
     - name: Type checking with mypy
       run: |
         mypy src --ignore-missing-imports || true
-    
+
     - name: Check code formatting with black
       run: black --check src tests
-    
+
     - name: Check import sorting with isort
       run: isort --check-only src tests
 
   test:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -62,32 +62,37 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    
+
     - name: Run unit tests
       env:
         DATABASE_URL: postgresql://device_metrics:device_metrics_password@localhost:5432/device_metrics_test
       run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html
-    
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html || exit_code=$?
+        if [ ${exit_code:-0} -eq 5 ]; then
+          echo "No tests collected - this is okay for initial setup"
+          exit 0
+        fi
+        exit ${exit_code:-0}
+
     - name: Run integration tests
       env:
         DATABASE_URL: postgresql://device_metrics:device_metrics_password@localhost:5432/device_metrics_test
       run: |
         pytest tests/integration/ -v || echo "No integration tests yet"
-    
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
@@ -100,23 +105,23 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
-    
+
     - name: Install dependencies
       run: npm ci
-    
+
     - name: Run linter
       run: npm run lint || echo "Linter not configured yet"
-    
+
     - name: Run tests
       run: npm test -- --watch=false --browsers=ChromeHeadless || echo "Tests not configured yet"
 
@@ -124,20 +129,20 @@ jobs:
     needs: [lint, test, frontend-test]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    
+
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
-    
+
     - name: Login to Docker Hub
       if: github.event_name == 'push'
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-    
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v4
       with:
@@ -153,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
@@ -161,12 +166,12 @@ jobs:
         scan-ref: '.'
         format: 'sarif'
         output: 'trivy-results.sarif'
-    
+
     - name: Upload Trivy results to GitHub Security
       uses: github/codeql-action/upload-sarif@v2
       with:
         sarif_file: 'trivy-results.sarif'
-    
+
     - name: Run Bandit security linter
       run: |
         pip install bandit
@@ -177,19 +182,18 @@ jobs:
     if: github.event_name == 'push'
     steps:
     - uses: actions/checkout@v3
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
         pip install locust
-    
+
     - name: Run performance tests
       run: |
         echo "Performance tests would run here"
         # locust -f tests/performance/locustfile.py --headless -u 100 -r 10 -t 60s || echo "Performance tests not configured"
-

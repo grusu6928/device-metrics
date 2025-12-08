@@ -1,14 +1,17 @@
 """Device metric database models"""
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, JSON
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from src.common.database import Base
 
 
 class DeviceMetric(Base):
     """Device metric model"""
+
     __tablename__ = "device_metrics"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(String(255), nullable=False, index=True)
     metric_type = Column(String(100), nullable=False, index=True)
@@ -17,18 +20,19 @@ class DeviceMetric(Base):
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     metadata = Column(JSON, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     anomalies = relationship("Anomaly", back_populates="metric")
-    
+
     def __repr__(self):
         return f"<DeviceMetric(id={self.id}, device_id={self.device_id}, metric_type={self.metric_type})>"
 
 
 class Anomaly(Base):
     """Anomaly detection result"""
+
     __tablename__ = "anomalies"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     metric_id = Column(Integer, ForeignKey("device_metrics.id"), nullable=False)
     anomaly_score = Column(Float, nullable=False)
@@ -36,20 +40,21 @@ class Anomaly(Base):
     classification = Column(String(100))  # AI classification
     is_confirmed = Column(Boolean, default=False)
     detected_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
-    
+
     # Relationships
     metric = relationship("DeviceMetric", back_populates="anomalies")
     alerts = relationship("Alert", back_populates="anomaly")
     remediations = relationship("Remediation", back_populates="anomaly")
-    
+
     def __repr__(self):
         return f"<Anomaly(id={self.id}, metric_id={self.metric_id}, score={self.anomaly_score})>"
 
 
 class Alert(Base):
     """Alert generated from anomaly"""
+
     __tablename__ = "alerts"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     anomaly_id = Column(Integer, ForeignKey("anomalies.id"), nullable=False)
     severity = Column(String(50), nullable=False, index=True)  # critical, warning, info
@@ -57,18 +62,19 @@ class Alert(Base):
     status = Column(String(50), default="open", index=True)  # open, acknowledged, resolved
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     resolved_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     # Relationships
     anomaly = relationship("Anomaly", back_populates="alerts")
-    
+
     def __repr__(self):
         return f"<Alert(id={self.id}, anomaly_id={self.anomaly_id}, severity={self.severity})>"
 
 
 class Remediation(Base):
     """AI-generated remediation suggestions"""
+
     __tablename__ = "remediations"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     anomaly_id = Column(Integer, ForeignKey("anomalies.id"), nullable=False)
     suggestion = Column(Text, nullable=False)
@@ -77,10 +83,11 @@ class Remediation(Base):
     applied = Column(Boolean, default=False)
     applied_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
+
     # Relationships
     anomaly = relationship("Anomaly", back_populates="remediations")
-    
-    def __repr__(self):
-        return f"<Remediation(id={self.id}, anomaly_id={self.anomaly_id}, priority={self.priority})>"
 
+    def __repr__(self):
+        return (
+            f"<Remediation(id={self.id}, anomaly_id={self.anomaly_id}, priority={self.priority})>"
+        )

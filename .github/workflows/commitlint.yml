@@ -25,6 +25,9 @@ jobs:
           pip install --upgrade pip
           pip install pre-commit
 
+      - name: Install pre-commit hooks
+        run: pre-commit install-hooks
+
       - name: Validate commit messages (PR)
         if: github.event_name == 'pull_request'
         run: |
@@ -60,4 +63,3 @@ jobs:
             done
             echo "✅ All commits follow conventional commit format"
           fi
-
