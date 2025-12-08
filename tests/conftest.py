@@ -43,16 +43,12 @@ def client(db_session):
 
 
 @pytest.fixture
-def auth_token(client):
+def auth_token(client, db_session):
     """Get authentication token for tests"""
     # Create test user first
     from src.api.dependencies import create_test_user
-    from src.common.auth import get_password_hash
-    from src.models.user import User
 
-    db = next(TestingSessionLocal())
-    create_test_user(db)
-    db.close()
+    create_test_user(db_session)
 
     # Login
     response = client.post(

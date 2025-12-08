@@ -32,8 +32,9 @@ class HealthSummarizer:
             Dict with summary, health status, and key metrics
         """
         # Fetch recent metrics and anomalies
-        cutoff_time = datetime.utcnow().replace(microsecond=0)
-        cutoff_time = cutoff_time.replace(hour=cutoff_time.hour - recent_hours)
+        from datetime import timedelta
+
+        cutoff_time = datetime.utcnow().replace(microsecond=0) - timedelta(hours=recent_hours)
 
         metrics = (
             db.query(DeviceMetric)

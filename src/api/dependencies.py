@@ -25,7 +25,8 @@ def create_test_user(db: Session):
     test_user = get_user_by_username(db, "testuser")
     if not test_user:
         logger.info("Creating test user: testuser / testpassword")
-        test_user = User(username="testuser", password_hash=get_password_hash("testpassword"))
+        password = "testpassword"[:72]  # Bcrypt limit is 72 bytes
+        test_user = User(username="testuser", password_hash=get_password_hash(password))
         db.add(test_user)
         db.commit()
         db.refresh(test_user)

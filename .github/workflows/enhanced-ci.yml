@@ -80,12 +80,15 @@ jobs:
       env:
         DATABASE_URL: postgresql://device_metrics:device_metrics_password@localhost:5432/device_metrics_test
       run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html || exit_code=$?
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html --tb=short || exit_code=$?
         if [ ${exit_code:-0} -eq 5 ]; then
           echo "No tests collected - this is okay for initial setup"
           exit 0
         fi
-        exit ${exit_code:-0}
+        if [ ${exit_code:-0} -ne 0 ]; then
+          echo "Tests failed with exit code ${exit_code}"
+          exit ${exit_code}
+        fi
 
     - name: Run integration tests
       env:

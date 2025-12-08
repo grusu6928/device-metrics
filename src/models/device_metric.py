@@ -24,11 +24,6 @@ class DeviceMetric(Base):
     # Relationships
     anomalies = relationship("Anomaly", back_populates="metric")
 
-    @property
-    def metadata(self):
-        """Alias for metric_metadata for backward compatibility with schemas"""
-        return self.metric_metadata
-
     def __repr__(self):
         return f"<DeviceMetric(id={self.id}, device_id={self.device_id}, metric_type={self.metric_type})>"
 

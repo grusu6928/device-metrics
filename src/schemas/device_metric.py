@@ -26,11 +26,12 @@ class DeviceMetricResponse(BaseModel):
     value: float
     unit: Optional[str]
     timestamp: datetime
-    metadata: Dict[str, Any]
+    metadata: Dict[str, Any] = Field(alias="metric_metadata")
     created_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class MetricIngestRequest(BaseModel):

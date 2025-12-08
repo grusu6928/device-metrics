@@ -13,8 +13,12 @@ def test_health_check(client):
     assert response.json() == {"status": "healthy"}
 
 
-def test_login(client):
+def test_login(client, db_session):
     """Test authentication"""
+    from src.api.dependencies import create_test_user
+
+    create_test_user(db_session)
+
     response = client.post(
         "/api/v1/auth/token", data={"username": "testuser", "password": "testpassword"}
     )
