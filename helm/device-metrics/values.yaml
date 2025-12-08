@@ -1,0 +1,129 @@
+namespace:
+  create: true
+  name: ""
+
+replicaCount: 2
+
+image:
+  repository: device-metrics
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  receiver:
+    port: 8000
+    name: http
+  frontend:
+    port: 80
+    name: http
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: device-metrics.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: device-metrics-tls
+      hosts:
+        - device-metrics.example.com
+
+resources:
+  receiver:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 500m
+      memory: 256Mi
+  consumer:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  frontend:
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+config:
+  secretName: device-metrics-secrets
+  env:
+    API_V1_PREFIX: "/api/v1"
+    PROJECT_NAME: "Device Metrics API"
+    DATABASE_URL: "postgresql://device_metrics:password@postgres:5432/device_metrics"
+    KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+    QDRANT_HOST: "qdrant"
+    QDRANT_PORT: "6333"
+    SECRET_KEY: "change-me-in-production"
+    OPENAI_API_KEY: ""  # Set via secret
+
+postgres:
+  enabled: true
+  image: postgres:15-alpine
+  database: device_metrics
+  username: device_metrics
+  password: device_metrics_password
+
+kafka:
+  enabled: true
+
+qdrant:
+  enabled: true

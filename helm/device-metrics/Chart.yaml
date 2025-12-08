@@ -1,0 +1,6 @@
+apiVersion: v2
+name: device-metrics
+description: Device Metrics Microservice with AI Integration
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
