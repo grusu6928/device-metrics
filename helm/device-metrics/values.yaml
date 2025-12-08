@@ -127,5 +127,3 @@ kafka:
 
 qdrant:
   enabled: true
-
-

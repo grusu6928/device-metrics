@@ -99,7 +99,7 @@ class MetricsConsumer:
 
             # 2. Generate embedding and index in vector DB
             embedding = self.embedding_service.generate_embedding(
-                metric.device_id, metric.metric_type, metric.value, metric.metadata
+                metric.device_id, metric.metric_type, metric.value, metric.metric_metadata
             )
 
             self.embedding_service.index_metric(
@@ -107,7 +107,7 @@ class MetricsConsumer:
                 metric.device_id,
                 metric.metric_type,
                 metric.value,
-                metric.metadata,
+                metric.metric_metadata,
                 embedding,
             )
 
@@ -115,12 +115,12 @@ class MetricsConsumer:
 
             # 3. Detect anomalies using AI
             anomaly_result = self.anomaly_detector.detect_anomaly(
-                metric.device_id, metric.metric_type, metric.value, metric.metadata
+                metric.device_id, metric.metric_type, metric.value, metric.metric_metadata
             )
 
             # 4. Add training sample for ML model
             self.anomaly_detector.add_training_sample(
-                metric.metric_type, metric.value, metric.metadata
+                metric.metric_type, metric.value, metric.metric_metadata
             )
 
             # 5. If anomaly detected, save and process

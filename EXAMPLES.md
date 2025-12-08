@@ -248,5 +248,3 @@ from src.services.embeddings import EmbeddingService
 service = EmbeddingService()
 # Collection will be created automatically
 ```
-
-

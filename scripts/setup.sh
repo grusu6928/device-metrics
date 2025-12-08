@@ -51,5 +51,3 @@ echo "Next steps:"
 echo "1. Update .env file with your configuration"
 echo "2. Start the receiver: uvicorn app.receiver.main:app --reload"
 echo "3. Start the consumer: python -m app.consumer.main"
-
-

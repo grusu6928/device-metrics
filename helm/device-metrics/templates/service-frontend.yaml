@@ -15,4 +15,3 @@ spec:
   selector:
     {{- include "device-metrics.selectorLabels" . | nindent 4 }}
     component: frontend
-

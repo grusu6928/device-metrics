@@ -41,7 +41,7 @@ jobs:
             # Use conventional-pre-commit hook from pre-commit
             tmp_file=$(mktemp)
             echo "${commit_subject}" > "${tmp_file}"
-            pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" --hook conventional-pre-commit || {
+            pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" conventional-pre-commit || {
               echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
               echo "Message: ${commit_subject}"
               rm -f "${tmp_file}"
@@ -64,7 +64,7 @@ jobs:
               # Use conventional-pre-commit hook from pre-commit
               tmp_file=$(mktemp)
               echo "${commit_subject}" > "${tmp_file}"
-              pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" --hook conventional-pre-commit || {
+              pre-commit run --hook-stage commit-msg --commit-msg-filename "${tmp_file}" conventional-pre-commit || {
                 echo "❌ Commit ${commit:0:7} does not follow conventional commit format"
                 echo "Message: ${commit_subject}"
                 rm -f "${tmp_file}"

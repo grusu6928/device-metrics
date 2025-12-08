@@ -24,7 +24,7 @@ const DeviceDetail = () => {
   return (
     <div className="device-detail">
       <h1>Device: {healthData.device_id}</h1>
-      
+
       <div className="health-status">
         <div className={`status-badge ${healthData.overall_health}`}>
           {healthData.overall_health.toUpperCase()}
@@ -63,4 +63,3 @@ const DeviceDetail = () => {
 }
 
 export default DeviceDetail
-

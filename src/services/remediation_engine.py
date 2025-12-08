@@ -106,7 +106,7 @@ Anomaly Classification: {anomaly.classification}
 Anomaly Score: {anomaly.anomaly_score:.2f}
 Timestamp: {metric.timestamp}
 
-Metadata: {metric.metadata or 'None'}
+Metadata: {metric.metric_metadata or 'None'}
 
 Provide:
 1. A specific, actionable remediation step (1-2 sentences)

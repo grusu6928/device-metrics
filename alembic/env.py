@@ -1,23 +1,24 @@
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-from alembic import context
 import sys
+from logging.config import fileConfig
 from pathlib import Path
+
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from src.common.database import Base
 from src.api.config import settings
-from src.models.device_metric import DeviceMetric, Anomaly, Alert, Remediation
+from src.common.database import Base
+from src.models.device_metric import Alert, Anomaly, DeviceMetric, Remediation
 from src.models.user import User
 
 # this is the Alembic Config object
 config = context.config
 
 # Override sqlalchemy.url with settings
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:
@@ -49,9 +50,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

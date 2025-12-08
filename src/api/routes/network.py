@@ -38,7 +38,7 @@ async def get_network_device_summary(
 
     # Convert to dict format
     metrics_data = [
-        {"metric_type": m.metric_type, "value": m.value, "metadata": m.metadata or {}}
+        {"metric_type": m.metric_type, "value": m.value, "metadata": m.metric_metadata or {}}
         for m in metrics
     ]
 
@@ -57,7 +57,7 @@ async def get_network_issues(
     metrics = metric_repo.get_metrics_by_device(device_id, limit=100)
 
     metrics_data = [
-        {"metric_type": m.metric_type, "value": m.value, "metadata": m.metadata or {}}
+        {"metric_type": m.metric_type, "value": m.value, "metadata": m.metric_metadata or {}}
         for m in metrics
     ]
 

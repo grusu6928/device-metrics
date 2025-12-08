@@ -17,7 +17,7 @@ The system integrates four major AI capabilities:
 
 - **Model**: `sentence-transformers/all-MiniLM-L6-v2` (384-dimensional embeddings)
 - **Vector Database**: Qdrant (cosine similarity search)
-- **Process**: 
+- **Process**:
   1. Each metric is converted to a structured text representation
   2. Text is embedded using the transformer model
   3. Embedding is indexed in Qdrant with metadata
@@ -350,5 +350,3 @@ LLM_MODEL = "gpt-3.5-turbo"  # Faster, cheaper
 - **Remediation**: ~$0.01-0.03 per anomaly (GPT-4)
 
 For 1000 devices, 100 summaries/day: ~$3-10/day in LLM costs
-
-

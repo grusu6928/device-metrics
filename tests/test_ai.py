@@ -81,7 +81,7 @@ def test_remediation_engine():
     mock_metric.metric_type = "cpu_usage"
     mock_metric.value = 95.0
     mock_metric.unit = "percent"
-    mock_metric.metadata = {}
+    mock_metric.metric_metadata = {}
 
     remediation = engine.generate_remediation(mock_anomaly, mock_metric)
 

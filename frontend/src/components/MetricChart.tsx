@@ -32,4 +32,3 @@ const MetricChart: React.FC<MetricChartProps> = ({ data, metricType }) => {
 }
 
 export default MetricChart
-

@@ -63,5 +63,3 @@ spec:
               name: {{ .Values.config.secretName }}
               key: OPENAI_API_KEY
               optional: true
-
-

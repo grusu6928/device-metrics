@@ -22,7 +22,8 @@ setup:
 	bash scripts/setup.sh
 
 test:
-	pytest tests/ -v --cov=src --cov-report=term
+	@echo "Running tests (same as CI)..."
+	@export DATABASE_URL="$${DATABASE_URL:-sqlite:///./test.db}" && pytest tests/ -v --cov=src --cov-report=term
 
 install-hooks:
 	pre-commit install
@@ -72,13 +73,17 @@ commitlint:
 		base=$$(git merge-base HEAD origin/main 2>/dev/null || git rev-list --max-parents=0 HEAD | head -1); \
 		head=$$(git rev-parse HEAD); \
 		for commit in $$(git rev-list $$base..$$head); do \
-			commit_msg=$$(git log -1 --format=%B $$commit); \
+			commit_subject=$$(git log -1 --format=%s $$commit); \
 			echo "Validating commit: $$(echo $$commit | cut -c1-7)"; \
-			echo "$$commit_msg" | pre-commit run --hook-stage commit-msg --commit-msg-filename /dev/stdin || { \
+			tmp_file=$$(mktemp); \
+			echo "$$commit_subject" > "$$tmp_file"; \
+			pre-commit run --hook-stage commit-msg --commit-msg-filename "$$tmp_file" conventional-pre-commit || { \
 				echo "❌ Commit $$(echo $$commit | cut -c1-7) does not follow conventional commit format"; \
-				echo "Message: $$commit_msg"; \
+				echo "Message: $$commit_subject"; \
+				rm -f "$$tmp_file"; \
 				exit 1; \
 			}; \
+			rm -f "$$tmp_file"; \
 		done; \
 		echo "✅ All commits follow conventional commit format"; \
 	fi
@@ -116,8 +121,8 @@ lint-ci:
 	isort --check-only src tests
 	@echo "✅ Linting complete!"
 
-# Test with coverage (matches CI)
+# Test with coverage (matches CI exactly)
 test-ci:
-	@echo "Running tests with coverage..."
-	pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html
+	@echo "Running tests with coverage (CI mode)..."
+	@export DATABASE_URL="$${DATABASE_URL:-sqlite:///./test.db}" && pytest tests/ -v --cov=src --cov-report=xml --cov-report=term --cov-report=html
 	@echo "✅ Tests complete! Coverage report in htmlcov/index.html"

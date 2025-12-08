@@ -11,4 +11,3 @@ data:
   QDRANT_PORT: {{ .Values.config.env.QDRANT_PORT | quote }}
   API_V1_PREFIX: {{ .Values.config.env.API_V1_PREFIX | default "/api/v1" | quote }}
   PROJECT_NAME: {{ .Values.config.env.PROJECT_NAME | default .Values.image.repository | quote }}
-

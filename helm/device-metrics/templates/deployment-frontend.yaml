@@ -47,4 +47,3 @@ spec:
         env:
         - name: REACT_APP_API_URL
           value: "http://{{ include "device-metrics.fullname" . }}-receiver:{{ .Values.service.receiver.port }}"
-

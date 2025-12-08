@@ -13,7 +13,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <h1>Device Metrics Dashboard</h1>
-      
+
       <div className="dashboard-grid">
         <div className="dashboard-card">
           <h2>Network Devices</h2>
@@ -57,4 +57,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-

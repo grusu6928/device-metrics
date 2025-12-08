@@ -17,4 +17,3 @@ export const authService = {
     return response.data.access_token
   },
 }
-

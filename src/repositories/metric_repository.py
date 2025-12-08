@@ -17,7 +17,11 @@ class MetricRepository:
 
     def create_metric(self, metric_data: dict) -> DeviceMetric:
         """Create a new device metric"""
-        metric = DeviceMetric(**metric_data)
+        # Map 'metadata' key to 'metric_metadata' attribute
+        metric_dict = metric_data.copy()
+        if "metadata" in metric_dict:
+            metric_dict["metric_metadata"] = metric_dict.pop("metadata")
+        metric = DeviceMetric(**metric_dict)
         self.db.add(metric)
         self.db.commit()
         self.db.refresh(metric)

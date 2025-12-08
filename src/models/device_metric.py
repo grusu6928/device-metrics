@@ -18,11 +18,16 @@ class DeviceMetric(Base):
     value = Column(Float, nullable=False)
     unit = Column(String(50))
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
-    metadata = Column(JSON, default={})
+    metric_metadata = Column("metadata", JSON, default={})
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     anomalies = relationship("Anomaly", back_populates="metric")
+
+    @property
+    def metadata(self):
+        """Alias for metric_metadata for backward compatibility with schemas"""
+        return self.metric_metadata
 
     def __repr__(self):
         return f"<DeviceMetric(id={self.id}, device_id={self.device_id}, metric_type={self.metric_type})>"

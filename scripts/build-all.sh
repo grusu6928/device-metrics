@@ -18,4 +18,3 @@ cd ..
 echo "All images built successfully!"
 echo "Backend: device-metrics-api:latest"
 echo "Frontend: device-metrics-frontend:latest"
-

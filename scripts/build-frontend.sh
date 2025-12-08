@@ -14,4 +14,3 @@ npm ci
 npm run build
 
 echo "Frontend build complete! Output in frontend/dist/"
-

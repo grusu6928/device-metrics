@@ -385,4 +385,3 @@ docker logs device-metrics-consumer
 2. Check consumer group configuration
 3. Review consumer logs
 4. Verify database connection
-
